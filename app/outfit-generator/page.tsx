@@ -9,6 +9,7 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
+import Image from "next/image"
 
 interface Outfit {
   id: string
@@ -171,17 +172,17 @@ export default function OutfitGenerator() {
         >
           <h1 className="text-4xl md:text-5xl font-bold mb-4">AI Outfit Generator</h1>
           <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Describe your style preferences, occasion, or any specific items you'd like to wear, and our AI will
+            Describe your style preferences, occasion, or any specific items you`&apos;`d like to wear, and our AI will
             generate personalized outfit recommendations.
           </p>
 
           <form onSubmit={generateOutfit} className="max-w-2xl mx-auto">
-            <div className="flex flex-col space-y-4">
+            <div className="flex flex-col space-y-4 ">
               <Textarea
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 placeholder="Example: I need a casual outfit for a coffee date on a cool autumn day. I prefer earth tones and comfortable clothes."
-                className="min-h-[120px] text-base p-4"
+                className="min-h-[120px]  p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
                 disabled={isLoading}
               />
               <Button
@@ -286,10 +287,13 @@ export default function OutfitGenerator() {
                             <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300">
                               <CardContent className="p-0 flex flex-col h-full">
                                 <div className="relative pt-[100%] bg-gray-100">
-                                  <img
+                                  
+                                  
+                                  <Image
                                     src={product.image || "/placeholder.svg"}
                                     alt={product.name}
-                                    className="absolute inset-0 w-full h-full object-cover"
+                                    layout="fill"
+                                    objectFit="cover"
                                   />
                                 </div>
                                 <div className="p-4 flex flex-col flex-grow">

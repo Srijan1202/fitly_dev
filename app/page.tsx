@@ -154,7 +154,7 @@ export default function FitlyLandingPage() {
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Achieve Your Fitness Goals</h2>
             <p className="text-gray-600 max-w-3xl mx-auto">
-              Whether you're a beginner or a fitness enthusiast, Fitly makes your journey simple, effective, and
+              Whether you&apos;re a beginner or a fitness enthusiast, Fitly makes your journey simple, effective, and
               enjoyable. Stay motivated, stay fit!
             </p>
           </motion.div>
@@ -204,7 +204,7 @@ export default function FitlyLandingPage() {
           >
             <h2 className="text-3xl md:text-4xl font-bold mb-4">Start Your Fitness Journey Today</h2>
             <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join thousands of users who have transformed their lives with Fitly's personalized approach to fitness and
+              Join thousands of users who have transformed their lives with Fitly&apos;s personalized approach to fitness and
               wellness.
             </p>
             <motion.button

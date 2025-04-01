@@ -1,5 +1,6 @@
 "use client"
 
+import Navbar from "@/components/navbar"
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import { ChevronLeft, ChevronRight } from "lucide-react"
@@ -41,22 +42,7 @@ export default function FitlyLandingPage() {
   return (
     <div className="min-h-screen bg-white overflow-hidden">
       {/* Navigation */}
-      <nav className="flex justify-between items-center p-4 md:p-6 absolute top-0 left-0 right-0 z-10">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="text-gray-800 font-serif italic text-2xl">
-            F
-          </Link>
-          <Link href="/about" className="text-gray-800 uppercase text-sm tracking-wider">
-            About
-          </Link>
-          <Link href="/programs" className="text-gray-800 uppercase text-sm tracking-wider">
-            Programs
-          </Link>
-        </div>
-        <Link href="/login" className="bg-black text-white px-6 py-2 rounded-full text-sm uppercase tracking-wider">
-          Login
-        </Link>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <div className="relative h-screen w-full flex items-center justify-center">

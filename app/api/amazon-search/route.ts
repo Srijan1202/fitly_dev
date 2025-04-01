@@ -103,7 +103,7 @@ function generateMockProducts(query: string) {
     }
 
     // Generate a placeholder image URL based on the item type and color
-    const imageUrl = `/placeholder.svg?height=300&width=300`
+    const imageUrl = `https://via.placeholder.com/300?text=${encodeURIComponent(name)}`;
 
     // For a real implementation, you would use actual product images
     // Here we're using placeholder images for demonstration

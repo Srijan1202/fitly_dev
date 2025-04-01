@@ -138,13 +138,11 @@ export default function OutfitGenerator() {
     } finally {
       setIsGeneratingMore(false)
     }
-    
   }
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      
       <nav className="flex justify-between items-center p-4 md:p-6 bg-white shadow-sm">
         <div className="flex items-center space-x-8">
           <Link href="/" className="text-gray-800 font-serif italic text-2xl">
@@ -164,7 +162,6 @@ export default function OutfitGenerator() {
           Login
         </Link>
       </nav>
-
       {/* Hero Section */}
       <section className="py-16 px-4 md:px-8 bg-gray-50">
         <motion.div
@@ -209,7 +206,6 @@ export default function OutfitGenerator() {
           </form>
         </motion.div>
       </section>
-
       {/* Results Section */}
       {outfits.length > 0 && (
         <section className="py-16 px-4 md:px-8" ref={resultsRef}>
@@ -291,10 +287,10 @@ export default function OutfitGenerator() {
                               <CardContent className="p-0 flex flex-col h-full">
                                 <div className="relative pt-[100%] bg-gray-100">
                                   <Image
-                                    src={product.imageUrl || "/placeholder-image.png"}
+                                    src={product.image || "/placeholder.svg?height=400&width=300"}
                                     alt={product.name}
-                                    layout="fill"
-                                    objectFit="cover"
+                                    fill
+                                    className="object-cover"
                                   />
                                 </div>
                                 <div className="p-4 flex flex-col flex-grow">
@@ -322,7 +318,6 @@ export default function OutfitGenerator() {
           </div>
         </section>
       )}
-
       {/* Footer */}
       <footer className="py-8 px-4 md:px-8 bg-gray-50 border-t border-gray-100">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
@@ -340,6 +335,7 @@ export default function OutfitGenerator() {
           </div>
         </div>
       </footer>
+          
     </div>
   )
 }

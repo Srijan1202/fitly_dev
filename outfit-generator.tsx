@@ -3,13 +3,10 @@
 import type React from "react"
 
 import { useState, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
-import { Loader2, RefreshCw, Send, ShoppingBag } from "lucide-react"
+import { motion } from "framer-motion"
 import Link from "next/link"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Textarea } from "@/components/ui/textarea"
 import Image from "next/image"
+import { Send } from "lucide-react"
 
 interface Outfit {
   id: string
@@ -21,17 +18,24 @@ interface Product {
   id: string
   name: string
   image: string
-  imageUrl?: string
   price: string
   link: string
+  category: string
 }
 
 export default function OutfitGenerator() {
   const [prompt, setPrompt] = useState("")
   const [outfits, setOutfits] = useState<Outfit[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const [isGeneratingMore, setIsGeneratingMore] = useState(false)
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({})
   const resultsRef = useRef<HTMLDivElement>(null)
+
+  const handleImageError = (productId: string) => {
+    setImageErrors((prev) => ({
+      ...prev,
+      [productId]: true,
+    }))
+  }
 
   const generateOutfit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,12 +69,24 @@ export default function OutfitGenerator() {
       )
 
       const productsResults = await Promise.all(productsPromises)
-      const products = productsResults.flatMap((result) => result.products)
+
+      // Flatten and deduplicate by category
+      const allProducts = productsResults.flatMap((result) => result.products)
+      const productsByCategory: Record<string, Product> = {}
+
+      // Keep only one product per category
+      allProducts.forEach((product) => {
+        if (!productsByCategory[product.category]) {
+          productsByCategory[product.category] = product
+        }
+      })
+
+      const uniqueProducts = Object.values(productsByCategory)
 
       const newOutfit: Outfit = {
         id: Date.now().toString(),
         items: outfitItems,
-        products,
+        products: uniqueProducts,
       }
 
       setOutfits((prev) => [...prev, newOutfit])
@@ -86,164 +102,110 @@ export default function OutfitGenerator() {
     }
   }
 
-  const generateMoreOutfits = async () => {
-    if (!prompt.trim()) return
-
-    setIsGeneratingMore(true)
-    try {
-      const response = await fetch("/api/outfit", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          prompt,
-          previousOutfits: outfits.map((outfit) => outfit.items.join(", ")),
-        }),
-      })
-
-      if (!response.ok) throw new Error("Failed to generate more outfits")
-
-      const data = await response.json()
-      const outfitItems = data.outfit.split(",").map((item: string) => item.trim())
-
-      // Get product recommendations for each item
-      const productsPromises = outfitItems.map((item: string) =>
-        fetch("/api/amazon-search", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ query: item }),
-        }).then((res) => res.json()),
-      )
-
-      const productsResults = await Promise.all(productsPromises)
-      const products = productsResults.flatMap((result) => result.products)
-
-      const newOutfit: Outfit = {
-        id: Date.now().toString(),
-        items: outfitItems,
-        products,
-      }
-
-      setOutfits((prev) => [...prev, newOutfit])
-
-      // Scroll to the new outfit
-      setTimeout(() => {
-        document.getElementById(newOutfit.id)?.scrollIntoView({ behavior: "smooth" })
-      }, 100)
-    } catch (error) {
-      console.error("Error generating more outfits:", error)
-    } finally {
-      setIsGeneratingMore(false)
-    }
-  }
-
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navigation */}
-      <nav className="flex justify-between items-center p-4 md:p-6 bg-white shadow-sm">
-        <div className="flex items-center space-x-8">
-          <Link href="/" className="text-gray-800 font-serif italic text-2xl">
+    <div className="min-h-screen flex flex-col">
+      {/* Hero Section with Background Image */}
+      <div className="relative h-screen w-full">
+        <div className="absolute inset-0 bg-white/90 z-0">
+          <div className="absolute inset-0 flex">
+            <div className="w-1/2 h-full relative">
+              <Image
+                src="/images/model-dress.png"
+                alt="Model in white dress"
+                fill
+                className="object-cover object-center"
+                priority
+              />
+            </div>
+            <div className="w-1/2 h-full relative">
+              <Image
+                src="/images/model-dress.png"
+                alt="Model in white dress detail"
+                fill
+                className="object-cover object-right"
+                priority
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Navigation */}
+        <header className="relative z-10 p-8 flex justify-between items-center">
+          <Link href="/" className="text-gray-800 font-serif italic text-3xl">
             F
           </Link>
-          <Link href="/about" className="text-gray-800 uppercase text-sm tracking-wider">
-            About
-          </Link>
-          <Link href="/programs" className="text-gray-800 uppercase text-sm tracking-wider">
-            Programs
-          </Link>
-          <Link href="/outfit-generator" className="text-blue-600 uppercase text-sm tracking-wider font-medium">
-            Outfit Generator
-          </Link>
-        </div>
-        <Link href="/login" className="bg-black text-white px-6 py-2 rounded-full text-sm uppercase tracking-wider">
-          Login
-        </Link>
-      </nav>
-      {/* Hero Section */}
-      <section className="py-16 px-4 md:px-8 bg-gray-50">
-        <motion.div
-          className="max-w-4xl mx-auto text-center"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-        >
-          <h1 className=" text-4xl md:text-5xl font-bold mb-4 text-black">AI Outfit Generator</h1>
-          <p className="text-gray-600 mb-8 max-w-2xl mx-auto">
-            Describe your style preferences, occasion, or any specific items you`&apos;`d like to wear, and our AI will
-            generate personalized outfit recommendations.
-          </p>
+          <nav className="flex space-x-8">
+            <Link href="/" className="uppercase text-sm tracking-widest font-light">
+              HOME
+            </Link>
+            <Link href="/about" className="uppercase text-sm tracking-widest font-light">
+              ABOUT
+            </Link>
+          </nav>
+        </header>
 
-          <form onSubmit={generateOutfit} className="max-w-2xl mx-auto">
-            <div className="flex flex-col space-y-4 ">
-              <Textarea
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                placeholder="Example: I need a casual outfit for a coffee date on a cool autumn day. I prefer earth tones and comfortable clothes."
-                className="min-h-[120px]  p-4 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black"
-                disabled={isLoading}
-              />
-              <Button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-full text-sm uppercase tracking-wider shadow-lg self-center"
-                disabled={isLoading || !prompt.trim()}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Send className="mr-2 h-4 w-4" />
-                    Generate Outfit
-                  </>
-                )}
-              </Button>
-            </div>
-          </form>
-        </motion.div>
-      </section>
-      {/* Results Section */}
-      {outfits.length > 0 && (
-        <section className="py-16 px-4 md:px-8" ref={resultsRef}>
-          <div className="max-w-6xl mx-auto">
-            <motion.div
-              className="text-center mb-12"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.6 }}
-            >
-              <h2 className="text-3xl md:text-4xl font-bold mb-4">Your Outfit Suggestions</h2>
-              <p className="text-gray-600 max-w-3xl mx-auto">
-                Here are your personalized outfit recommendations based on your preferences.
-              </p>
+        {/* Hero Content */}
+        <div className="relative z-10 flex flex-col items-center justify-center h-full px-4 -mt-20">
+          <motion.div
+            className="max-w-4xl mx-auto text-center"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h1 className="text-5xl md:text-7xl font-light mb-4 tracking-wider uppercase">AI Outfit Generator</h1>
+            <p className="text-gray-600 mb-12 max-w-2xl mx-auto text-sm tracking-wide">
+              Not sure what to wear? Enter your preferences, and our AI will craft outfit ideas tailored just for you!
+            </p>
 
-              {outfits.length > 0 && (
-                <Button
-                  onClick={generateMoreOutfits}
-                  className="mt-6 bg-gray-800 hover:bg-gray-900 text-white px-6 py-2 rounded-full text-sm uppercase tracking-wider"
-                  disabled={isGeneratingMore}
+            <form onSubmit={generateOutfit} className="max-w-2xl mx-auto">
+              <div className="flex flex-col space-y-6">
+                <input
+                  type="text"
+                  value={prompt}
+                  onChange={(e) => setPrompt(e.target.value)}
+                  placeholder="Enter your style preferences..."
+                  className="w-full bg-white/80 backdrop-blur-sm border-0 rounded-full py-4 px-6 text-gray-800 focus:outline-none focus:ring-0 shadow-sm"
+                  disabled={isLoading}
+                />
+                <button
+                  type="submit"
+                  className="bg-[#e9dff4] hover:bg-[#d9c7ed] text-gray-800 px-8 py-3 rounded-full text-sm uppercase tracking-widest font-light mx-auto flex items-center transition-colors duration-300 disabled:opacity-50"
+                  disabled={isLoading || !prompt.trim()}
                 >
-                  {isGeneratingMore ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Generating more...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Generate More Looks
-                    </>
-                  )}
-                </Button>
-              )}
-            </motion.div>
+                  <Send className="mr-2 h-4 w-4" />
+                  Generate Outfit
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      </div>
 
-            <div className="space-y-16">
-              <AnimatePresence>
+      {/* Mannequin Section */}
+      <div className="relative w-full min-h-screen bg-[#f0e6e6]">
+        <div className="absolute inset-0">
+          <Image src="/images/mannequin.png" alt="Mannequin" fill className="object-contain" />
+        </div>
+
+        {/* Results Section */}
+        {outfits.length > 0 && (
+          <div className="relative z-10 py-16 px-4 md:px-8" ref={resultsRef}>
+            <div className="max-w-6xl mx-auto">
+              <motion.div
+                className="text-center mb-12"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.6 }}
+              >
+                <h2 className="text-3xl md:text-4xl font-light mb-4 uppercase tracking-wider">
+                  Your Outfit Suggestions
+                </h2>
+                <p className="text-gray-600 max-w-3xl mx-auto text-sm">
+                  Here are your personalized outfit recommendations based on your preferences.
+                </p>
+              </motion.div>
+
+              <div className="space-y-16">
                 {outfits.map((outfit, outfitIndex) => (
                   <motion.div
                     key={outfit.id}
@@ -251,10 +213,10 @@ export default function OutfitGenerator() {
                     initial={{ opacity: 0, y: 50 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: outfitIndex * 0.1 }}
-                    className="bg-white rounded-xl shadow-md overflow-hidden"
+                    className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm overflow-hidden"
                   >
                     <div className="p-6 md:p-8">
-                      <h3 className="text-2xl font-bold mb-4">Outfit {outfitIndex + 1}</h3>
+                      <h3 className="text-2xl font-light mb-6 uppercase tracking-wider">Outfit {outfitIndex + 1}</h3>
 
                       <div className="flex flex-wrap gap-2 mb-6">
                         {outfit.items.map((item, index) => (
@@ -263,19 +225,14 @@ export default function OutfitGenerator() {
                             initial={{ scale: 0.8, opacity: 0 }}
                             animate={{ scale: 1, opacity: 1 }}
                             transition={{ duration: 0.3, delay: 0.1 + index * 0.05 }}
-                            className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
+                            className="bg-[#f7f3fa] text-gray-700 px-3 py-1 rounded-full text-xs uppercase tracking-wider"
                           >
                             {item}
                           </motion.span>
                         ))}
                       </div>
 
-                      <h4 className="text-xl font-semibold mb-4 flex items-center">
-                        <ShoppingBag className="mr-2 h-5 w-5 text-blue-600" />
-                        Recommended Products
-                      </h4>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                         {outfit.products.map((product, index) => (
                           <motion.div
                             key={product.id}
@@ -283,59 +240,57 @@ export default function OutfitGenerator() {
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.4, delay: 0.2 + index * 0.05 }}
                           >
-                            <Card className="h-full overflow-hidden hover:shadow-lg transition-shadow duration-300 text-gray-800">
-                              <CardContent className="p-0 flex flex-col h-full">
-                                <div className="relative pt-[100%] bg-gray-100">
+                            <a href={product.link} target="_blank" rel="noopener noreferrer" className="block group">
+                              <div className="relative pt-[125%] bg-gray-50 overflow-hidden mb-3">
+                                {!imageErrors[product.id] ? (
                                   <Image
-                                    src={product.image || "/placeholder.svg?height=400&width=300"}
+                                    src={product.image || "/placeholder.svg"}
                                     alt={product.name}
                                     fill
-                                    className="object-cover"
+                                    className="object-cover transition-transform duration-500 group-hover:scale-105"
+                                    onError={() => handleImageError(product.id)}
+                                    unoptimized
                                   />
-                                </div>
-                                <div className="p-4 flex flex-col flex-grow">
-                                  <h5 className="font-medium text-sm line-clamp-2 mb-1">{product.name}</h5>
-                                  <p className="text-blue-600 font-bold mt-auto">{product.price}</p>
-                                  <a
-                                    href={product.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="mt-2 text-xs bg-gray-800 text-white py-1 px-3 rounded-full inline-flex items-center justify-center hover:bg-gray-900 transition-colors"
-                                  >
-                                    View on Asos
-                                  </a>
-                                </div>
-                              </CardContent>
-                            </Card>
+                                ) : (
+                                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-gray-100 p-4">
+                                    <p className="text-gray-500 text-sm text-center">{product.name}</p>
+                                  </div>
+                                )}
+                              </div>
+                              <h5 className="font-light text-sm line-clamp-1 uppercase tracking-wider">
+                                {product.name}
+                              </h5>
+                              <p className="text-gray-700 text-xs mt-1">{product.price}</p>
+                            </a>
                           </motion.div>
                         ))}
                       </div>
                     </div>
                   </motion.div>
                 ))}
-              </AnimatePresence>
+              </div>
             </div>
           </div>
-        </section>
-      )}
+        )}
+      </div>
+
       {/* Footer */}
-      <footer className="py-8 px-4 md:px-8 bg-gray-50 border-t border-gray-100">
+      <footer className="py-6 px-4 md:px-8 bg-white border-t border-gray-100">
         <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm mb-4 md:mb-0">© {new Date().getFullYear()} Fitly. All rights reserved.</p>
+          <p className="text-gray-500 text-xs mb-4 md:mb-0">© {new Date().getFullYear()} Fitly. All rights reserved.</p>
           <div className="flex space-x-6">
-            <Link href="/terms" className="text-gray-500 text-sm hover:text-gray-800">
+            <Link href="/terms" className="text-gray-500 text-xs uppercase tracking-wider hover:text-gray-800">
               Terms
             </Link>
-            <Link href="/privacy" className="text-gray-500 text-sm hover:text-gray-800">
+            <Link href="/privacy" className="text-gray-500 text-xs uppercase tracking-wider hover:text-gray-800">
               Privacy
             </Link>
-            <Link href="/contact" className="text-gray-500 text-sm hover:text-gray-800">
+            <Link href="/contact" className="text-gray-500 text-xs uppercase tracking-wider hover:text-gray-800">
               Contact
             </Link>
           </div>
         </div>
       </footer>
-          
     </div>
   )
 }

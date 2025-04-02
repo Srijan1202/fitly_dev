@@ -109,7 +109,7 @@ export default function OutfitGenerator() {
 
       // Get product recommendations for each item
       const productsPromises = outfitItems.map((item: string) =>
-        fetch("/api/amazon-search", {
+        fetch("/api/asos-search", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -292,7 +292,7 @@ export default function OutfitGenerator() {
                                 <div className="relative pt-[100%] bg-gray-100">
                                   <Image
                                     src={product.imageUrl || "/placeholder-image.png"}
-                                    alt={product.name}
+                                    alt=""
                                     layout="fill"
                                     objectFit="cover"
                                   />

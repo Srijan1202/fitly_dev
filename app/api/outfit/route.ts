@@ -5,7 +5,7 @@ export async function POST(req: Request) {
   try {
     const { prompt, previousOutfits = [] } = await req.json()
 
-    let systemPrompt = `You are a fashion expert AI that suggests outfits based on user preferences. 
+    let systemPrompt = `You are a fashion expert AI that suggests outfits based on user preferences.And you only suggest Asos products.
     Respond ONLY with a comma-separated list of clothing items (4-6 items) that would make a complete outfit.
     Format example: "blue hoodie, green pants, white shoes, red cap"
     Do not include any explanations, just the comma-separated list.`

@@ -18,6 +18,7 @@ export async function POST(req: Request) {
         },
       },
     )
+    
 
     if (!response.ok) {
       console.error(`ASOS API responded with status: ${response.status}`)

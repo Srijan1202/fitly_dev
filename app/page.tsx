@@ -217,24 +217,6 @@ export default function FitlyLandingPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer className="py-8 px-4 md:px-8 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center">
-          <p className="text-gray-500 text-sm mb-4 md:mb-0">© {new Date().getFullYear()} Fitly. All rights reserved.</p>
-          <div className="flex space-x-6">
-            <Link href="/terms" className="text-gray-500 text-sm hover:text-gray-800">
-              Terms
-            </Link>
-            <Link href="/privacy" className="text-gray-500 text-sm hover:text-gray-800">
-              Privacy
-            </Link>
-            <Link href="/contact" className="text-gray-500 text-sm hover:text-gray-800">
-              Contact
-            </Link>
-          </div>
-        </div>
-      </footer>
     </div>
   )
 }
